@@ -1,0 +1,176 @@
+1.) 
+```{r}
+library(tidyverse)
+library(modelr)
+library(broom)
+```
+
+```{r}
+install.packages(c("tidyverse", "modelr", "broom"))
+```
+
+```{r}
+disney <- read_csv("disney_plus_titles.csv")
+
+```
+```{r}
+glimpse(disney)
+summary(disney)
+```
+
+2.)
+```{r}
+disney <- disney %>%
+  mutate(release_year = as.numeric(release_year))
+```
+
+```{r}
+disney <- disney %>%
+  mutate(duration_num = parse_number(duration))
+```
+
+```{r}
+disney <- disney %>%
+  mutate(
+    rating = as.factor(rating),
+    listed_in = as.factor(listed_in)
+  )
+```
+
+3.) Exploring Relationships: 
+```{r}
+ggplot(disney, aes(x = release_year, y = duration_num)) +
+  geom_point(alpha = 0.4) +
+  geom_smooth(method = "lm") +
+  labs(title = "Duration vs Year of Release")
+```
+
+ii.) 
+```{r}
+disney <- disney %>%
+  mutate(period = cut(
+    release_year,
+    breaks = c(1900, 1925, 1950, 1975, 2000, 2025),
+    labels = c("1900–1924", "1925–1949", "1950–1974", "1975–1999", "2000–2024"),
+    right = FALSE
+  ))
+```
+
+```{r}
+top_ratings <- disney %>%
+  count(period, rating, sort = TRUE) %>%
+  group_by(period) %>%
+  slice_max(n, n = 5) %>%
+  ungroup()
+```
+
+```{r}
+ratings_top <- disney %>%
+  semi_join(top_ratings, by = c("period", "rating"))
+```
+
+```{r}
+ratings_top %>%
+  count(period, release_year, rating) %>%
+  ggplot(aes(x = release_year, y = n, fill = rating)) +
+  geom_col(position = "fill") +
+  facet_wrap(~ period, scales = "free_x") +
+  labs(
+    title = "Rating Distribution Over Time (Top 5 Ratings per 25-Year Interval)",
+    x = "Year of Release",
+    y = "Proportion",
+    fill = "Rating"
+  )
+```
+
+iii.) 
+```{r}
+disney_genre <- disney %>%
+  separate_rows(listed_in, sep = ", ") %>%
+  mutate(listed_in = as.factor(listed_in))
+```
+
+```{r}
+disney_genre <- disney_genre %>%
+  mutate(period = cut(
+    release_year,
+    breaks = c(1900, 1925, 1950, 1975, 2000, 2025),
+    labels = c("1900–1924", "1925–1949", "1950–1974", "1975–1999", "2000–2024"),
+    right = FALSE
+  ))
+```
+
+```{r}
+top_genres <- disney_genre %>%
+  count(period, listed_in, sort = TRUE) %>%
+  group_by(period) %>%
+  slice_max(n, n = 5) %>%
+  ungroup()
+```
+
+```{r}
+disney_top <- disney_genre %>%
+  semi_join(top_genres, by = c("period", "listed_in"))
+```
+
+
+```{r}
+disney_top %>%
+  count(period, release_year, listed_in) %>%
+  ggplot(aes(x = release_year, y = n, fill = listed_in)) +
+  geom_col() +
+  facet_wrap(~ period, scales = "free_x") +
+  labs(
+    title = "Top 5 Genres per 25-Year Interval",
+    x = "Year of Release",
+    y = "Number of Titles",
+    fill = "Genre"
+  )
+```
+
+4.) 
+```{r}
+model_duration <- lm(duration_num ~ release_year, data = disney)
+tidy(model_duration)
+glance(model_duration)
+```
+
+```{r}
+model_rating <- lm(as.numeric(rating) ~ release_year, data = disney)
+tidy(model_rating)
+```
+
+5.) 
+```{r}
+model_multi <- lm(duration_num ~ release_year + rating + listed_in, data = disney)
+tidy(model_multi)
+glance(model_multi)
+```
+
+```{r}
+model_multi1 <- lm(duration_num ~ release_year + rating, data = disney)
+tidy(model_multi)
+glance(model_multi)
+```
+
+
+6.) 
+```{r}
+disney_pred <- disney %>%
+  add_predictions(model_multi1, var = "pred") %>%
+  add_residuals(model_multi1, var = "resid")
+```
+
+7.) 
+```{r}
+ggplot(disney_pred, aes(x = pred, y = resid)) +
+  geom_point(alpha = 0.4) +
+  geom_hline(yintercept = 0, color = "red")
+```
+
+```{r}
+ggplot(disney_pred, aes(x = pred, y = duration_num)) +
+  geom_point(alpha = 0.4) +
+  geom_abline(color = "blue")
+```
+
