@@ -1,35 +1,65 @@
-1.) 
-```{r}
+---
+title: "CDS 101 Disney Project"
+author: "Somto, Jacob, Angela "
+date: "`r Sys.Date()`"
+documentclass: article
+geometry: margin=1in
+fontsize: 11pt
+output:
+  pdf_document:
+    toc: false
+    df_print: kable
+    fig_caption: false
+    number_sections: false
+    dev: pdf
+    highlight: tango
+  html_document:
+    theme: default
+    self_contained: true
+    toc: false
+    df_print: kable
+    fig_caption: false
+    number_sections: false
+    smart: true
+    dev: svg
+--- 
+
+
+```{r setup, include=FALSE}
 library(tidyverse)
 library(modelr)
 library(broom)
-```
+disney <- read.csv("disney_plus_titles.csv")
 
-```{r}
-install.packages(c("tidyverse", "modelr", "broom"))
-```
-
-```{r}
-disney <- read_csv("disney_plus_titles.csv")
 
 ```
+
+
 ```{r}
+
+### Shows Each Column with examples
 glimpse(disney)
+
+### Shows each Variable
+
 summary(disney)
 ```
 
 2.)
 ```{r}
+### Converts the release year variable from character to a numeric value
 disney <- disney %>%
   mutate(release_year = as.numeric(release_year))
 ```
 
 ```{r}
+### Converts the duration variable from character to a numeric value
 disney <- disney %>%
   mutate(duration_num = parse_number(duration))
 ```
 
 ```{r}
+### Transforms the ratings and listed_in variables into factors which makes them categorical
 disney <- disney %>%
   mutate(
     rating = as.factor(rating),
@@ -39,14 +69,18 @@ disney <- disney %>%
 
 3.) Exploring Relationships: 
 ```{r}
+#Creates a scatter plot looking at the relationship between the release year 
+#and the duration of the movie to see if there is any correlation between the two.
 ggplot(disney, aes(x = release_year, y = duration_num)) +
   geom_point(alpha = 0.4) +
   geom_smooth(method = "lm") +
   labs(title = "Duration vs Year of Release")
 ```
 
-ii.) 
+ii.)
 ```{r}
+# Adds a new column named period which splits release years into different periods
+#of time being 25 years apart from each other. 
 disney <- disney %>%
   mutate(period = cut(
     release_year,
@@ -57,6 +91,11 @@ disney <- disney %>%
 ```
 
 ```{r}
+# Creates a new data set looking at the amount of movies spread based on 
+# two different factors.
+# The factors being time period and rating of the movie.
+# For example, This just gives the total amount of movies for rated G during 
+# the years of 2000-2024
 top_ratings <- disney %>%
   count(period, rating, sort = TRUE) %>%
   group_by(period) %>%
@@ -65,11 +104,14 @@ top_ratings <- disney %>%
 ```
 
 ```{r}
+#New dataset making sure all the values match from top_ratings using the semi_join 
+#function
 ratings_top <- disney %>%
   semi_join(top_ratings, by = c("period", "rating"))
 ```
 
 ```{r}
+#Creates a bar plot looking at the distribution of age rating throughout the years.
 ratings_top %>%
   count(period, release_year, rating) %>%
   ggplot(aes(x = release_year, y = n, fill = rating)) +
@@ -85,12 +127,22 @@ ratings_top %>%
 
 iii.) 
 ```{r}
+# Creates a new data set with new rows based on the listed_in Variable. 
+# This new data set creates new rows based on the different genres of each movie. 
+# For example the first movie in the data set 
+# "Duck the Halls: A Mickey Mouse Christmas Special" 
+# is split into two different two rows with one having animation and the other being family. 
+# Not all rows will be split, but all rows will keep the other same data 
+# such as rating and release year.
 disney_genre <- disney %>%
   separate_rows(listed_in, sep = ", ") %>%
   mutate(listed_in = as.factor(listed_in))
 ```
 
 ```{r}
+# This does the same thing as earlier, adding a new column named period.
+# This add a column based on the release date of the movie, 
+#being 25 years apart from each other. 
 disney_genre <- disney_genre %>%
   mutate(period = cut(
     release_year,
