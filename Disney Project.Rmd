@@ -141,8 +141,8 @@ disney_genre <- disney %>%
 
 ```{r}
 # This does the same thing as earlier, adding a new column named period.
-# This add a column based on the release date of the movie, 
-#being 25 years apart from each other. 
+# This adds a column based on the release date of the movie, 
+# being 25 years apart from each other. 
 disney_genre <- disney_genre %>%
   mutate(period = cut(
     release_year,
@@ -153,6 +153,8 @@ disney_genre <- disney_genre %>%
 ```
 
 ```{r}
+# Does the same thing earlier and counts the total amount of movies 
+# based on rating sorted year
 top_genres <- disney_genre %>%
   count(period, listed_in, sort = TRUE) %>%
   group_by(period) %>%
@@ -161,12 +163,17 @@ top_genres <- disney_genre %>%
 ```
 
 ```{r}
+#New dataset making sure all the values match from disney_genre using the semi_join 
+#function
 disney_top <- disney_genre %>%
   semi_join(top_genres, by = c("period", "listed_in"))
 ```
 
 
 ```{r}
+# Creates multiple bar plots looking at the top 5 genres 
+# at a with a range of 25 years. 
+# Shows the relationship between genres and intervalss of release.
 disney_top %>%
   count(period, release_year, listed_in) %>%
   ggplot(aes(x = release_year, y = n, fill = listed_in)) +
@@ -181,25 +188,35 @@ disney_top %>%
 ```
 
 4.) 
-```{r}
+```{r results = "hide"}
+# fits the duration and release year into a linear regression 
+# model and provides statistics such as p values, estimates,
+# r.squared, and sigma
 model_duration <- lm(duration_num ~ release_year, data = disney)
 tidy(model_duration)
 glance(model_duration)
 ```
 
-```{r}
+```{r results = "hide"}
+# Fits the rating year into a linear regression model 
+# based on the release years and provides the same statistics
 model_rating <- lm(as.numeric(rating) ~ release_year, data = disney)
 tidy(model_rating)
 ```
 
 5.) 
-```{r}
+```{r results = "hide"}
+# Does the same thing as the other code chunks, basically asking 
+# How release year, rating, and genre impact the movie duration
 model_multi <- lm(duration_num ~ release_year + rating + listed_in, data = disney)
 tidy(model_multi)
 glance(model_multi)
 ```
-
-```{r}
+ 
+```{r results = "hide"}
+# This creates a linear regression model looking and how 
+# only release year and rating predict duration. 
+# and provides statistics like previous code chunks
 model_multi1 <- lm(duration_num ~ release_year + rating, data = disney)
 tidy(model_multi)
 glance(model_multi)
@@ -208,6 +225,8 @@ glance(model_multi)
 
 6.) 
 ```{r}
+# Adds  the pred and resid variables from the previous
+# code chunks to a new dataset named disney_pred
 disney_pred <- disney %>%
   add_predictions(model_multi1, var = "pred") %>%
   add_residuals(model_multi1, var = "resid")
@@ -215,12 +234,18 @@ disney_pred <- disney %>%
 
 7.) 
 ```{r}
+# Plots residual vs predicted durations 
+# x= predicted duration 
+# y = resisuals (actual - predicted)
 ggplot(disney_pred, aes(x = pred, y = resid)) +
   geom_point(alpha = 0.4) +
   geom_hline(yintercept = 0, color = "red")
 ```
 
 ```{r}
+# Plots predicted vs actual duration
+# X is the predicted duration
+# y is the acutal duration of the movie
 ggplot(disney_pred, aes(x = pred, y = duration_num)) +
   geom_point(alpha = 0.4) +
   geom_abline(color = "blue")
