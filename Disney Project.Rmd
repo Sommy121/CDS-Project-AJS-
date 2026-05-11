@@ -242,6 +242,14 @@ model_rating <- lm(as.numeric(rating) ~ release_year, data = disney)
 tidy(model_rating)
 ```
 
+```{r}
+# Fits the rating & genre(listed_in) into a linear regression model 
+# based on the release years and provides the same statistics
+model_rating_vs_genre <- lm(as.numeric(rating) ~ listed_in, data = ratings_top)
+tidy(model_rating_vs_genre)
+```
+
+
 5.) 
 ```{r results = "hide"}
 # Does the same thing as the other code chunks, basically asking 
