@@ -187,6 +187,46 @@ disney_top %>%
   )
 ```
 
+iv.) 
+```{r}
+#Separates the genres in the table into one individual rating, instead of two or more.
+ratings_top <- disney %>%
+  separate_rows(listed_in, sep = ", ") %>%
+  mutate(listed_in = as.factor(listed_in))
+```
+
+```{r}
+#Identifies the top 5 genres
+ratings_top <- disney_genre %>%
+  count(listed_in, sort = TRUE) %>%
+  slice_max(n, n = 5) %>%
+  pull(listed_in)
+```
+
+```{r}
+#Filters the data set to only the top 5 genres. 
+ratings_top <- disney_genre %>%
+  filter(listed_in %in% ratings_top)
+
+```
+
+```{r}
+#Makes bar chart to see relationship between the genre and rating. 
+ratings_top %>%
+  count(listed_in, rating) %>%
+  ggplot(aes(x = listed_in, y = n, fill = rating)) +
+  geom_col() +
+  labs(
+    title = "Relationship Between Genre and Rating (Top 5 Genres)",
+    x = "Genre",
+    y = "Number of Titles",
+    fill = "Rating"
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+
 4.) 
 ```{r results = "hide"}
 # fits the duration and release year into a linear regression 
