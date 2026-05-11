@@ -242,9 +242,9 @@ model_rating <- lm(as.numeric(rating) ~ release_year, data = disney)
 tidy(model_rating)
 ```
 
-```{r}
-# Fits the rating & genre(listed_in) into a linear regression model 
-# based on the release years and provides the same statistics
+```{r results = "hide"}
+# Fits the rating into a linear regression model 
+# based on the genre and provides the same statistics
 model_rating_vs_genre <- lm(as.numeric(rating) ~ listed_in, data = ratings_top)
 tidy(model_rating_vs_genre)
 ```
@@ -297,3 +297,8 @@ ggplot(disney_pred, aes(x = pred, y = duration_num)) +
   geom_abline(color = "blue")
 ```
 
+#Conclusion 
+
+This analysis provides a clear understanding of how Disney+ content has evolved across time, genre, and rating, and how these factors relate to duration. By breaking the data-set into 25‑year intervals and focusing on the most common genres and ratings within each period, the visualizations revealed to us meaningful historical shifts in content production. The genre vs. rating comparison further showed that certain genres consistently align/have a relationship with specific rating categories, while others show a wider spread, indicating to us that they have more variability in how they are classified.
+
+The multiple regression model reinforced these findings by showing that genre and rating are strong predictors of duration, explaining over 80% of the variation in run-time. The model performed well, and the residual analysis showed no major violations of assumptions, supporting its validity. Taken together, the graphics and statistical modeling show that genre and rating play central roles in shaping Disney+ content and are key to understanding differences in duration across titles.
